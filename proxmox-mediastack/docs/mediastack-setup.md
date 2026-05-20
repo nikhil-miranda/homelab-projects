@@ -44,7 +44,7 @@ The first symlink keeps the conventional `/root/mediastack` path while files liv
 
 The second symlink lets `docker compose` auto-discover the root `.env` without any flags.
 
-Create config and data directories on the ZFS bind mounts:
+Create config and data directories on the bind mounts:
 
 ```bash
 mkdir -p /mnt/config/{gluetun,qbittorrent,prowlarr,sonarr,radarr,bazarr,jellyfin}
@@ -184,8 +184,8 @@ docker compose up -d
 # Logs for one service
 docker compose logs -f sonarr
 
-# Snapshot configs
-zfs snapshot tank/config@$(date +%Y%m%d-%H%M)
+# Check disk usage on aegis (pve-root must not fill up — /tank/ lives there)
+df -h /   # run on aegis host, not in LXC
 ```
 
 ## Known pitfalls
@@ -198,3 +198,5 @@ zfs snapshot tank/config@$(date +%Y%m%d-%H%M)
 | Jellyfin transcode falls back to software | GID mismatch | `docker exec jellyfin id`, confirm 993 present |
 | Sonarr cannot import from qBittorrent | Path mismatch | Both use `/downloads` — no remote path mapping needed with this compose |
 | LAN devices cannot reach qBittorrent WebUI | gluetun firewall | Confirm `LAN_SUBNET=192.168.0.0/24` in `.env` |
+| Any service: `AppFolder /config is not writable` | Config dir owned by wrong user | On aegis: `chown -R ${PUID}:${PGID} /tank/config/<service>`, then `docker compose restart <service>` |
+| Any service: `No space left on device` or `insufficient free space` | pve-root full — `/tank/` is on pve-root (no dedicated storage disk) | On aegis: `df -h /`. If 100%, check for stale data hidden under bind mounts: `mkdir /mnt/pveroot-check && mount --bind / /mnt/pveroot-check && du -sh /mnt/pveroot-check/tank/*`. Delete stale contents, then `umount /mnt/pveroot-check`. |

@@ -23,7 +23,8 @@ homelab-projects/
 |---|---|
 | Host | aegis — Intel i5-11500, 32 GB RAM, Debian 13 / Proxmox VE |
 | iGPU | Intel UHD 750 (`/dev/dri/renderD128`) |
-| ZFS pool | `tank` → datasets `tank/media`, `tank/downloads`, `tank/config` |
+| Storage | Single 128 GB NVMe. pve-root (39.5 G LVM) hosts `/tank/` — a plain directory, **no ZFS pool**. ~14.6 G unallocated in VG. Plan: add dedicated HDD and set up ZFS `tank` pool. |
+| `/tank/` | `/tank/media`, `/tank/downloads`, `/tank/config` — bind-mounted into LXC 100 at `/mnt/media`, `/mnt/downloads`, `/mnt/config` |
 | LXC 100 | `mediastack`, IP 192.168.0.50, privileged, 8 cores, 8 GB RAM |
 | Render GID | 993 (matched between host and LXC) |
 
@@ -51,4 +52,4 @@ git pull && docker compose pull && docker compose up -d
 - Secrets live in root `.env` (gitignored). Each project's vars are in a named section.
 - `.env.example` is the committed template — copy it to `.env` and fill in real values.
 - New projects get a top-level folder + `docs/` with a setup runbook.
-- ZFS bind mounts at `/mnt/` inside LXCs. Config persisted on ZFS, not in containers.
+- Bind mounts from `/tank/{media,downloads,config}` on aegis → `/mnt/{media,downloads,config}` in LXC 100. Config persisted on host, not in containers.

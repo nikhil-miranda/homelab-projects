@@ -4,7 +4,7 @@ Records the host and LXC prep that precedes the Docker stack. Already complete; 
 
 ## 1. Host (aegis) baseline
 
-Debian 13 trixie with Proxmox VE. ZFS pool `tank` with datasets `tank/media`, `tank/downloads`, `tank/config`.
+Debian 13 trixie with Proxmox VE. Storage is a single 128 GB NVMe; `/tank/` is a plain directory on pve-root used as bind-mount source for the LXC. No ZFS pool exists yet — planned for a future dedicated HDD.
 
 iGPU drivers on host:
 
@@ -44,7 +44,7 @@ lxc.cgroup2.devices.allow: c 226:0 rwm
 lxc.cgroup2.devices.allow: c 226:128 rwm
 lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
 
-# ZFS bind mounts
+# Bind mounts from /tank/ on pve-root
 mp0: /tank/media,mp=/mnt/media
 mp1: /tank/downloads,mp=/mnt/downloads
 mp2: /tank/config,mp=/mnt/config
@@ -87,9 +87,9 @@ cat /etc/group | grep render
 # render:x:993:
 
 mount | grep mnt
-# /tank/media on /mnt/media type zfs ...
-# /tank/downloads on /mnt/downloads type zfs ...
-# /tank/config on /mnt/config type zfs ...
+# /tank/media on /mnt/media type none (rw,bind)
+# /tank/downloads on /mnt/downloads type none (rw,bind)
+# /tank/config on /mnt/config type none (rw,bind)
 ```
 
 All four steps complete before moving to `mediastack-setup.md`.
