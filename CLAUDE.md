@@ -32,13 +32,13 @@ homelab-projects/
 SSH or `pct enter 100` from aegis, then:
 
 ```bash
-cd /opt/mediastack   # symlink → /opt/homelab-projects/proxmox-mediastack
+cd /root/mediastack   # symlink → /root/homelab-projects/proxmox-mediastack
 docker compose up -d
 docker compose ps
 docker compose logs -f <service>
 ```
 
-The `.env` is symlinked: `/opt/mediastack/.env → /opt/homelab-projects/.env`
+The `.env` is symlinked: `/root/mediastack/.env → /root/homelab-projects/.env`
 
 Update the stack:
 

@@ -30,17 +30,17 @@ docker run --rm hello-world
 | Storage Driver | `overlay2` | Stop. Add `features: nesting=1,keyctl=1` to LXC config, restart. |
 | Cgroup Version | `2` | Stop. Host must use cgroup v2 (Debian 13 default). |
 
-## 6. Clone repo and stage `/opt/mediastack`
+## 6. Clone repo and stage `/root/mediastack`
 
 ```bash
-cd /opt
+cd /root
 git clone https://github.com/nikhil-miranda/homelab-projects.git
-ln -s /opt/homelab-projects/proxmox-mediastack /opt/mediastack
-ln -s /opt/homelab-projects/.env /opt/mediastack/.env
-cd /opt/mediastack
+ln -s /root/homelab-projects/proxmox-mediastack /root/mediastack
+ln -s /root/homelab-projects/.env /root/mediastack/.env
+cd /root/mediastack
 ```
 
-The first symlink keeps the conventional `/opt/mediastack` path while files live in the git working tree. `git pull` updates the running config in place.
+The first symlink keeps the conventional `/root/mediastack` path while files live in the git working tree. `git pull` updates the running config in place.
 
 The second symlink lets `docker compose` auto-discover the root `.env` without any flags.
 
@@ -55,9 +55,9 @@ mkdir -p /mnt/downloads/{incomplete,complete}
 ## 7. Create local `.env`
 
 ```bash
-cp /opt/homelab-projects/.env.example /opt/homelab-projects/.env
-chmod 600 /opt/homelab-projects/.env
-nano /opt/homelab-projects/.env
+cp /root/homelab-projects/.env.example /root/homelab-projects/.env
+chmod 600 /root/homelab-projects/.env
+nano /root/homelab-projects/.env
 ```
 
 Fill in from your ProtonVPN WireGuard config (`.conf` file from account.protonvpn.com → Downloads → WireGuard):
@@ -72,7 +72,7 @@ Fill in from your ProtonVPN WireGuard config (`.conf` file from account.protonvp
 ## 8. Bring up the stack
 
 ```bash
-cd /opt/mediastack
+cd /root/mediastack
 docker compose pull
 docker compose up -d
 docker compose ps
@@ -176,7 +176,7 @@ docker exec jellyfin id
 
 ```bash
 # Update stack
-cd /opt/mediastack
+cd /root/mediastack
 git pull
 docker compose pull
 docker compose up -d
