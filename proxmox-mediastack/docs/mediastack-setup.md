@@ -47,7 +47,7 @@ The second symlink lets `docker compose` auto-discover the root `.env` without a
 Create config and data directories on the bind mounts:
 
 ```bash
-mkdir -p /mnt/config/{gluetun,qbittorrent,prowlarr,sonarr,radarr,bazarr,jellyfin}
+mkdir -p /mnt/config/{gluetun,qbittorrent,prowlarr,sonarr,radarr,bazarr,jellyfin,flaresolverr}
 mkdir -p /mnt/media/{tv,movies}
 mkdir -p /mnt/downloads/{incomplete,complete}
 ```
@@ -114,6 +114,7 @@ docker logs qbittorrent 2>&1 | grep -i "temporary password"
 | Radarr | http://192.168.0.50:7878 | set on first load |
 | Bazarr | http://192.168.0.50:6767 | set on first load |
 | Jellyfin | http://192.168.0.50:8096 | wizard on first load |
+| FlareSolverr | http://192.168.0.50:8191 | no auth — internal only |
 
 ### Inter-service URLs (use these in settings, not the LAN IP)
 
@@ -123,6 +124,7 @@ docker logs qbittorrent 2>&1 | grep -i "temporary password"
 | Radarr | qBittorrent | `http://gluetun:8080` | Settings → Download Clients → qBittorrent |
 | Prowlarr | Sonarr | `http://sonarr:8989` | Settings → Apps → Sonarr |
 | Prowlarr | Radarr | `http://radarr:7878` | Settings → Apps → Radarr |
+| Prowlarr | FlareSolverr | `http://192.168.0.50:8191` | Settings → Indexers → Add Indexer Proxy → FlareSolverr |
 | Bazarr | Sonarr | `http://sonarr:8989` | Settings → Sonarr |
 | Bazarr | Radarr | `http://radarr:7878` | Settings → Radarr |
 
@@ -194,6 +196,8 @@ df -h /   # run on aegis host, not in LXC
 |---|---|---|
 | gluetun never goes healthy | Wrong WireGuard key or country | Re-check `.env`, regenerate config from ProtonVPN |
 | qBittorrent stuck in `created` | gluetun unhealthy, `depends_on` blocking | Fix gluetun first |
+| Prowlarr: SSL connection could not be established | Indexer behind Cloudflare DDoS protection | Add FlareSolverr proxy (see inter-service URLs above) and tag affected indexers |
+| FlareSolverr stuck in `created` | gluetun unhealthy, `depends_on` blocking | Fix gluetun first (FlareSolverr shares gluetun network) |
 | Storage driver `vfs` not `overlay2` | LXC features missing | Add `features: nesting=1,keyctl=1` to LXC conf, restart |
 | Jellyfin transcode falls back to software | GID mismatch | `docker exec jellyfin id`, confirm 993 present |
 | Sonarr cannot import from qBittorrent | Path mismatch | Both use `/downloads` — no remote path mapping needed with this compose |

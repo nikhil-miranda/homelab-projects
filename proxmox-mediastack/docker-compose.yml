@@ -10,6 +10,7 @@ services:
       - 8080:8080
       - 6881:6881
       - 6881:6881/udp
+      - 8191:8191
     volumes:
       - ${CONFIG_PATH}/gluetun:/gluetun
     environment:
@@ -42,6 +43,18 @@ services:
     volumes:
       - ${CONFIG_PATH}/qbittorrent:/config
       - ${DOWNLOADS_PATH}:/downloads
+    restart: unless-stopped
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ}
     restart: unless-stopped
 
   prowlarr:
