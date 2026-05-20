@@ -1,0 +1,19 @@
+# Secrets — block any .env anywhere; re-allow .env.example
+.env
+!.env.example
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor junk
+.vscode/
+.idea/
+*.swp
+*~
+
+# Local state that should never be committed
+**/config/
+**/data/
+**/downloads/
+**/media/
