@@ -1,2 +1,31 @@
 # homelab-projects
-A repo to host all my homelab projects and their confs
+
+Personal homelab automation, configs, and runbooks.
+
+## Projects
+
+| Name | Description | Status |
+|---|---|---|
+| `proxmox-mediastack` | Single-LXC Docker Compose media stack on Proxmox: gluetun + qBittorrent + Prowlarr + Sonarr + Radarr + Bazarr + Jellyfin with Intel iGPU transcode | Deploying |
+
+## Conventions
+
+- Secrets live in `.env` (gitignored). See `.env.example` for the template.
+- ZFS bind mounts under `/mnt/` inside LXCs.
+- Service config persisted on host ZFS, not inside containers.
+
+## Layout
+
+```
+homelab-projects/
+├── .env                    # gitignored, all secrets
+├── .env.example            # committed template, sectioned by project
+├── .gitignore
+├── CLAUDE.md
+├── README.md
+└── proxmox-mediastack/
+    ├── docker-compose.yml
+    └── docs/
+        ├── lxc-setup.md
+        └── mediastack-setup.md
+```
