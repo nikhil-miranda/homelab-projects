@@ -6,11 +6,11 @@ Personal homelab automation, configs, and runbooks.
 
 | Name | Description | Status |
 |---|---|---|
-| `vesper` | Single-LXC Docker Compose media stack on Proxmox: gluetun + qBittorrent + Prowlarr + Sonarr + Radarr + Bazarr + Jellyfin with Intel iGPU transcode | Deploying |
+| `mediastack` | Single-LXC Docker Compose media stack on Proxmox: gluetun + qBittorrent + Prowlarr + Sonarr + Radarr + Bazarr + Jellyfin with Intel iGPU transcode | Deploying |
 
 ## Conventions
 
-- Secrets live in `.env` (gitignored). See `.env.example` for the template.
+- Secrets live in each project's own `.env` (gitignored), co-located with `docker-compose.yml`. See `.env.example` at the repo root for the template.
 - Bind mounts: `/mnt/kingston/{media,downloads}` (Kingston SSD) and `/srv/config` (NVMe) on aegis → `/mnt/{media,downloads,config}` inside LXC 100.
 - Service config persisted on `/srv/config` on the host, not inside containers.
 
@@ -24,10 +24,11 @@ homelab-projects/
 ├── CLAUDE.md
 ├── README.md
 ├── scripts/                # repo-level maintenance scripts
-└── vesper/
+└── mediastack/
     ├── docker-compose.yml
     └── docs/
         ├── lxc-setup.md
         ├── lxc-setup-ui.md
-        └── mediastack-setup.md
+        ├── mediastack-setup.md
+        └── kingston-ssd-setup.md
 ```

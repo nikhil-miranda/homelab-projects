@@ -6,12 +6,12 @@ Personal homelab automation, configs, and runbooks managed with Claude Code.
 
 ```
 homelab-projects/
-├── .env                         # gitignored, all secrets (create locally)
 ├── .env.example                 # committed template, sectioned by project
 ├── CLAUDE.md
 ├── README.md
 ├── scripts/                     # repo-level maintenance scripts
 └── mediastack/
+    ├── .env                     # gitignored, created locally from .env.example
     ├── docker-compose.yml
     └── docs/
         ├── lxc-setup.md         # steps 1-4 CLI reference (done)
@@ -36,13 +36,13 @@ homelab-projects/
 SSH or `pct enter 100` from aegis, then:
 
 ```bash
-cd /root/mediastack   # symlink → /root/homelab-projects/mediastack
+cd /root/homelab-projects/mediastack
 docker compose up -d
 docker compose ps
 docker compose logs -f <service>
 ```
 
-The `.env` is symlinked: `/root/mediastack/.env → /root/homelab-projects/.env`
+`.env` lives directly in `/root/homelab-projects/mediastack/` (gitignored, not committed).
 
 Update the stack:
 
@@ -52,7 +52,7 @@ git pull && docker compose pull && docker compose up -d
 
 ## Conventions
 
-- Secrets live in root `.env` (gitignored). Each project's vars are in a named section.
-- `.env.example` is the committed template — copy it to `.env` and fill in real values.
+- Secrets live in each project's own `.env` (gitignored), co-located with `docker-compose.yml`.
+- `.env.example` at the repo root is the committed template — copy it to the project directory and fill in real values.
 - New projects get a top-level folder + `docs/` with a setup runbook.
 - Bind mounts: `/mnt/kingston/{media,downloads}` (SATA SSD) and `/srv/config` (NVMe) on aegis → `/mnt/{media,downloads,config}` in LXC 100. Config persisted on host, not in containers.
