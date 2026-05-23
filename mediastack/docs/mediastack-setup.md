@@ -73,6 +73,8 @@ chmod 600 .env
 nano .env
 ```
 
+The `.env.example` has `DATA_PATH=/mnt/kingston` — this single path covers both media and downloads inside containers and is required for hardlinks to work (see Known pitfalls).
+
 Fill in from your ProtonVPN WireGuard config (`.conf` file from account.protonvpn.com → Downloads → WireGuard):
 
 | Field | Source |
@@ -147,10 +149,10 @@ API keys: Settings → General → Security in each `*arr` app.
 
 | Service | Path inside container |
 |---|---|
-| Sonarr root folder | `/media/tv` |
-| Radarr root folder | `/media/movies` |
-| qBittorrent default save | `/downloads/incomplete` |
-| qBittorrent completed move to | `/downloads/complete` |
+| Sonarr root folder | `/data/media/tv` |
+| Radarr root folder | `/data/media/movies` |
+| qBittorrent default save | `/downloads/complete` |
+| qBittorrent incomplete keep | `/downloads/incomplete` |
 
 ### qBittorrent extra settings
 
@@ -264,7 +266,8 @@ docker exec tailscale-jellyfin tailscale status
 | FlareSolverr stuck in `created` | gluetun unhealthy, `depends_on` blocking | Fix gluetun first (FlareSolverr shares gluetun network) |
 | Storage driver `vfs` not `overlay2` | LXC features missing | Add `features: nesting=1,keyctl=1` to LXC conf, restart |
 | Jellyfin transcode falls back to software | GID mismatch | `docker exec jellyfin id`, confirm 993 present |
-| Sonarr cannot import from qBittorrent | Path mismatch | Both use `/downloads` — no remote path mapping needed with this compose |
+| Sonarr/Radarr cannot import from qBittorrent | Path mismatch | Both use `/downloads` — no remote path mapping needed with this compose |
+| Radarr/Sonarr copies downloads instead of hardlinking — `du` shows double the movie size | Separate Docker volume mounts (`/media` and `/downloads`) appear as different filesystems; `link()` fails with EXDEV so the app falls back to copy | `DATA_PATH=/mnt/kingston` and the single `/data` mount in compose puts both paths on the same filesystem inside the container. Verify: `ls -i /mnt/kingston/downloads/complete/<file> /mnt/kingston/media/movies/<movie>/<file>` — inode numbers must match |
 | LAN devices cannot reach qBittorrent WebUI | gluetun firewall | Confirm `LAN_SUBNET=192.168.0.0/24` in `.env` |
 | Any service: `AppFolder /config is not writable` | Config dir owned by wrong user | On aegis: `chown -R ${PUID}:${PGID} /srv/config/<service>`, then `docker compose restart <service>` |
 | Any service: `No space left on device` on SATA SSD | SATA SSD full — media or downloads filling `/mnt/kingston` | On aegis: `df -h /mnt/kingston`. Remove unwanted media or stale completed downloads. |
