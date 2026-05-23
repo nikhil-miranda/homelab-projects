@@ -12,6 +12,7 @@ homelab-projects/
 ├── scripts/                     # repo-level maintenance scripts
 └── mediastack/
     ├── .env                     # gitignored, created locally from .env.example
+    ├── .env.example             # committed template
     ├── docker-compose.yml
     └── docs/
         ├── lxc-setup.md         # steps 1-4 CLI reference (done)
@@ -53,6 +54,6 @@ git pull && docker compose pull && docker compose up -d
 ## Conventions
 
 - Secrets live in each project's own `.env` (gitignored), co-located with `docker-compose.yml`.
-- `.env.example` at the repo root is the committed template — copy it to the project directory and fill in real values.
+- `.env.example` lives alongside `docker-compose.yml` in each project directory — copy it to `.env` and fill in real values.
 - New projects get a top-level folder + `docs/` with a setup runbook.
 - Bind mounts: `/mnt/kingston/{media,downloads}` (SATA SSD) and `/srv/config` (NVMe) on aegis → `/mnt/{media,downloads,config}` in LXC 100. Config persisted on host, not in containers.

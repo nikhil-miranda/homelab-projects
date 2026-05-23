@@ -51,9 +51,9 @@ mkdir -p /mnt/downloads/{incomplete,complete}
 ## 7. Create local `.env`
 
 ```bash
-cp /root/homelab-projects/.env.example /root/homelab-projects/mediastack/.env
-chmod 600 /root/homelab-projects/mediastack/.env
-nano /root/homelab-projects/mediastack/.env
+cp .env.example .env
+chmod 600 .env
+nano .env
 ```
 
 Fill in from your ProtonVPN WireGuard config (`.conf` file from account.protonvpn.com → Downloads → WireGuard):
