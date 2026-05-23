@@ -2,33 +2,38 @@
 
 Personal homelab automation, configs, and runbooks.
 
-## Projects
+---
 
-| Name | Description | Status |
-|---|---|---|
-| `mediastack` | Single-LXC Docker Compose media stack on Proxmox: gluetun + qBittorrent + Prowlarr + Sonarr + Radarr + Bazarr + Jellyfin with Intel iGPU transcode | Deploying |
+## 1. mediastack
+
+| # | Doc | Description |
+|---|-----|-------------|
+| a | [introduction.md](mediastack/docs/introduction.md) | Stack overview, service map, and hardware reference |
+| b | [lxc-setup.md](mediastack/docs/lxc-setup.md) | Proxmox LXC creation and iGPU passthrough (CLI) |
+| c | [mediastack-setup.md](mediastack/docs/mediastack-setup.md) | Docker Compose deployment, VPN setup, and service configuration |
+| d | [how-to-use.md](mediastack/docs/how-to-use.md) | Finding, downloading, and watching movies |
+
+Additional references:
+
+- [lxc-setup-ui.md](mediastack/docs/lxc-setup-ui.md) — LXC creation via Proxmox web UI (alternative to `b`)
+- [kingston-ssd-setup.md](mediastack/docs/kingston-ssd-setup.md) — SATA SSD setup and NVMe thin pool cleanup (prerequisite)
+
+---
+
+<!--
+## 2. <project-name>
+
+| # | Doc | Description |
+|---|-----|-------------|
+| a | [introduction.md](<project>/docs/introduction.md) | ... |
+| b | ... | ... |
+
+-->
+
+---
 
 ## Conventions
 
-- Secrets live in each project's own `.env` (gitignored), co-located with `docker-compose.yml`. Copy `.env.example` (same directory) to `.env` and fill in real values.
-- Bind mounts: `/mnt/kingston/{media,downloads}` (Kingston SSD) and `/srv/config` (NVMe) on aegis → `/mnt/{media,downloads,config}` inside LXC 100.
-- Service config persisted on `/srv/config` on the host, not inside containers.
-
-## Layout
-
-```
-homelab-projects/
-├── .env                    # gitignored, all secrets
-├── .gitignore
-├── CLAUDE.md
-├── README.md
-├── scripts/                # repo-level maintenance scripts
-└── mediastack/
-    ├── .env.example            # committed template
-    ├── docker-compose.yml
-    └── docs/
-        ├── lxc-setup.md
-        ├── lxc-setup-ui.md
-        ├── mediastack-setup.md
-        └── kingston-ssd-setup.md
-```
+- Secrets live in each project's `.env` (gitignored), co-located with `docker-compose.yml`. Copy `.env.example` to `.env` and fill in real values.
+- New projects get a top-level folder with `docs/` and at minimum an `introduction.md` and a setup runbook.
+- Bind mounts: host paths → container paths documented per project in `introduction.md`.
