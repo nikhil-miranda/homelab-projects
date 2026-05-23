@@ -11,7 +11,7 @@ Personal homelab automation, configs, and runbooks.
 ## Conventions
 
 - Secrets live in `.env` (gitignored). See `.env.example` for the template.
-- Bind mounts from `/srv/{media,downloads,config}` on aegis → `/mnt/{media,downloads,config}` inside LXC 100.
+- Bind mounts: `/mnt/kingston/{media,downloads}` (Kingston SSD) and `/srv/config` (NVMe) on aegis → `/mnt/{media,downloads,config}` inside LXC 100.
 - Service config persisted on `/srv/config` on the host, not inside containers.
 
 ## Layout

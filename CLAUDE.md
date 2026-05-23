@@ -16,7 +16,8 @@ homelab-projects/
     └── docs/
         ├── lxc-setup.md         # steps 1-4 CLI reference (done)
         ├── lxc-setup-ui.md      # steps 1-4 via Proxmox web UI
-        └── mediastack-setup.md  # steps 5-11 deployment runbook
+        ├── mediastack-setup.md  # steps 5-11 deployment runbook
+        └── kingston-ssd-setup.md # Kingston SSD setup & data migration
 ```
 
 ## Hardware Reference
@@ -25,8 +26,8 @@ homelab-projects/
 |---|---|
 | Host | aegis — Intel i5-11500, 32 GB RAM, Debian 13 / Proxmox VE |
 | iGPU | Intel UHD 750 (`/dev/dri/renderD128`) |
-| Storage | Single 128 GB NVMe. pve-root (39.5 G LVM) hosts `/srv/` — a plain directory, **no ZFS pool**. ~14.6 G unallocated in VG. Plan: add dedicated HDD and set up ZFS pool. |
-| `/srv/` | `/srv/media`, `/srv/downloads`, `/srv/config` — bind-mounted into LXC 100 at `/mnt/media`, `/mnt/downloads`, `/mnt/config` |
+| Storage | 128 GB NVMe (boot/OS/config) + Kingston SSD (media & downloads). pve-root (39.5 G LVM) hosts `/srv/config`. Kingston mounted at `/mnt/kingston` (ext4). ~14.6 G unallocated in NVMe VG. |
+| Host paths | `/mnt/kingston/media`, `/mnt/kingston/downloads` (Kingston SSD) and `/srv/config` (NVMe) — bind-mounted into LXC 100 at `/mnt/media`, `/mnt/downloads`, `/mnt/config` |
 | LXC 100 | `mediastack`, IP 192.168.0.50, privileged, 8 cores, 8 GB RAM |
 | Render GID | 993 (matched between host and LXC) |
 
@@ -54,4 +55,4 @@ git pull && docker compose pull && docker compose up -d
 - Secrets live in root `.env` (gitignored). Each project's vars are in a named section.
 - `.env.example` is the committed template — copy it to `.env` and fill in real values.
 - New projects get a top-level folder + `docs/` with a setup runbook.
-- Bind mounts from `/srv/{media,downloads,config}` on aegis → `/mnt/{media,downloads,config}` in LXC 100. Config persisted on host, not in containers.
+- Bind mounts: `/mnt/kingston/{media,downloads}` (Kingston SSD) and `/srv/config` (NVMe) on aegis → `/mnt/{media,downloads,config}` in LXC 100. Config persisted on host, not in containers.

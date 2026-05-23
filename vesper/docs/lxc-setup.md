@@ -2,6 +2,8 @@
 
 Run on the Proxmox host (aegis). Covers host prep, LXC creation, iGPU passthrough, and inside-LXC baseline. Follow `mediastack-setup.md` after this.
 
+**Prerequisite:** Complete `kingston-ssd-setup.md` steps 1–4 first (format, mount, fstab, create directories) so `/mnt/kingston` is ready before creating the LXC.
+
 ## Before you start
 
 If you are recreating an existing LXC, destroy it first:
@@ -11,17 +13,20 @@ pct stop 100
 pct destroy 100
 ```
 
-Verify the bind-mount source directories on the host survived (they live on `pve-root`, not inside the LXC):
+Verify the bind-mount source directories on the host survived (they live outside the LXC):
 
 ```bash
-ls /srv/
-# Expected: config  downloads  media
+ls /srv/config         # config stays on NVMe (pve-root)
+ls /mnt/kingston/      # media and downloads on Kingston SSD
+# Expected: media  downloads
 ```
 
-If `/srv/` is missing or empty, recreate the directories before proceeding:
+If missing, recreate before proceeding:
 
 ```bash
-mkdir -p /srv/{media,downloads,config}
+mkdir -p /srv/config
+mkdir -p /mnt/kingston/media/{tv,movies}
+mkdir -p /mnt/kingston/downloads/{incomplete,complete}
 ```
 
 Check which Debian 13 template is available locally (the exact filename changes with point releases):
@@ -41,7 +46,7 @@ Use the filename shown in your `pveam list local` output in the `pct create` com
 
 ## 1. Host (aegis) baseline
 
-Debian 13 trixie with Proxmox VE. Storage is a single 128 GB NVMe; `/srv/` is used as the bind-mount source directory for the LXC (standard Linux service data location). No ZFS pool exists yet — planned for a future dedicated HDD.
+Debian 13 trixie with Proxmox VE. Storage: 128 GB NVMe (boot/OS/config) + Kingston SSD mounted at `/mnt/kingston` (ext4, media & downloads). Config is bind-mounted from `/srv/config` on pve-root; media and downloads from the Kingston SSD.
 
 iGPU drivers on host:
 
@@ -81,9 +86,9 @@ lxc.cgroup2.devices.allow: c 226:0 rwm
 lxc.cgroup2.devices.allow: c 226:128 rwm
 lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
 
-# Bind mounts from /srv/ on pve-root
-mp0: /srv/media,mp=/mnt/media
-mp1: /srv/downloads,mp=/mnt/downloads
+# Bind mounts — media & downloads from Kingston SSD, config from NVMe
+mp0: /mnt/kingston/media,mp=/mnt/media
+mp1: /mnt/kingston/downloads,mp=/mnt/downloads
 mp2: /srv/config,mp=/mnt/config
 ```
 
@@ -126,8 +131,8 @@ cat /etc/group | grep render
 # render:x:993:
 
 mount | grep mnt
-# /srv/media on /mnt/media type none (rw,bind)
-# /srv/downloads on /mnt/downloads type none (rw,bind)
+# /mnt/kingston/media on /mnt/media type none (rw,bind)
+# /mnt/kingston/downloads on /mnt/downloads type none (rw,bind)
 # /srv/config on /mnt/config type none (rw,bind)
 ```
 

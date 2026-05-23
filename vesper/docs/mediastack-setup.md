@@ -186,8 +186,9 @@ docker compose up -d
 # Logs for one service
 docker compose logs -f sonarr
 
-# Check disk usage on aegis (pve-root must not fill up — /srv/ lives there)
-df -h /   # run on aegis host, not in LXC
+# Check disk usage on aegis
+df -h /              # pve-root (config lives here)
+df -h /mnt/kingston  # Kingston SSD (media & downloads)
 ```
 
 ## Known pitfalls
@@ -203,4 +204,4 @@ df -h /   # run on aegis host, not in LXC
 | Sonarr cannot import from qBittorrent | Path mismatch | Both use `/downloads` — no remote path mapping needed with this compose |
 | LAN devices cannot reach qBittorrent WebUI | gluetun firewall | Confirm `LAN_SUBNET=192.168.0.0/24` in `.env` |
 | Any service: `AppFolder /config is not writable` | Config dir owned by wrong user | On aegis: `chown -R ${PUID}:${PGID} /srv/config/<service>`, then `docker compose restart <service>` |
-| Any service: `No space left on device` or `insufficient free space` | pve-root full — `/srv/` is on pve-root (no dedicated storage disk) | On aegis: `df -h /`. Clear stale downloads or old logs to free space. |
+| Any service: `No space left on device` or `insufficient free space` | Kingston SSD full (media/downloads) or pve-root full (config) | On aegis: `df -h /mnt/kingston` and `df -h /`. Clear stale downloads or old logs to free space. |

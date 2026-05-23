@@ -2,6 +2,8 @@
 
 Alternative to `lxc-setup.md` — uses the Proxmox web interface and shell console instead of `pct` CLI commands. End state is identical; choose whichever flow you prefer.
 
+**Prerequisite:** Complete `kingston-ssd-setup.md` steps 1–4 first (format, mount, fstab, create directories) so `/mnt/kingston` is ready before creating the LXC.
+
 ## Before you start
 
 If recreating an existing LXC, destroy it first via the UI: select CT 100 in the sidebar → **More** → **Stop**, wait for it to stop, then **More** → **Destroy**.
@@ -9,14 +11,17 @@ If recreating an existing LXC, destroy it first via the UI: select CT 100 in the
 Verify bind-mount source directories on the host survived (SSH to aegis):
 
 ```bash
-ls /srv/
-# Expected: config  downloads  media
+ls /srv/config         # config stays on NVMe (pve-root)
+ls /mnt/kingston/      # media and downloads on Kingston SSD
+# Expected: media  downloads
 ```
 
 If missing:
 
 ```bash
-mkdir -p /srv/{media,downloads,config}
+mkdir -p /srv/config
+mkdir -p /mnt/kingston/media/{tv,movies}
+mkdir -p /mnt/kingston/downloads/{incomplete,complete}
 ```
 
 Download the Debian 13 template via UI: **local** storage → **CT Templates** → **Templates** button → search `debian-13` → Download. Note the exact filename shown after download.
@@ -83,9 +88,9 @@ lxc.cgroup2.devices.allow: c 226:0 rwm
 lxc.cgroup2.devices.allow: c 226:128 rwm
 lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
 
-# Bind mounts from /srv/ on pve-root
-mp0: /srv/media,mp=/mnt/media
-mp1: /srv/downloads,mp=/mnt/downloads
+# Bind mounts — media & downloads from Kingston SSD, config from NVMe
+mp0: /mnt/kingston/media,mp=/mnt/media
+mp1: /mnt/kingston/downloads,mp=/mnt/downloads
 mp2: /srv/config,mp=/mnt/config
 ```
 
@@ -123,8 +128,8 @@ cat /etc/group | grep render
 # render:x:993:
 
 mount | grep mnt
-# /srv/media on /mnt/media type none (rw,bind)
-# /srv/downloads on /mnt/downloads type none (rw,bind)
+# /mnt/kingston/media on /mnt/media type none (rw,bind)
+# /mnt/kingston/downloads on /mnt/downloads type none (rw,bind)
 # /srv/config on /mnt/config type none (rw,bind)
 ```
 
