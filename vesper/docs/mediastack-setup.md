@@ -187,8 +187,8 @@ docker compose up -d
 docker compose logs -f sonarr
 
 # Check disk usage on aegis
-df -h /              # pve-root (config lives here)
-df -h /mnt/kingston  # Kingston SSD (media & downloads)
+df -h /              # pve-root: Proxmox OS + Docker logs (capped at ~240MB total)
+df -h /mnt/kingston  # SATA SSD: all media and downloads
 ```
 
 ## Known pitfalls
@@ -204,4 +204,5 @@ df -h /mnt/kingston  # Kingston SSD (media & downloads)
 | Sonarr cannot import from qBittorrent | Path mismatch | Both use `/downloads` — no remote path mapping needed with this compose |
 | LAN devices cannot reach qBittorrent WebUI | gluetun firewall | Confirm `LAN_SUBNET=192.168.0.0/24` in `.env` |
 | Any service: `AppFolder /config is not writable` | Config dir owned by wrong user | On aegis: `chown -R ${PUID}:${PGID} /srv/config/<service>`, then `docker compose restart <service>` |
-| Any service: `No space left on device` or `insufficient free space` | Kingston SSD full (media/downloads) or pve-root full (config) | On aegis: `df -h /mnt/kingston` and `df -h /`. Clear stale downloads or old logs to free space. |
+| Any service: `No space left on device` on SATA SSD | SATA SSD full — media or downloads filling `/mnt/kingston` | On aegis: `df -h /mnt/kingston`. Remove unwanted media or stale completed downloads. |
+| Any service: `No space left on device` on pve-root (NVMe) | Rare — Docker logs are capped at 10 MB × 3 files per service (~240 MB total). If it happens, check with `du -sh /var/lib/docker/containers/` inside LXC | Run `docker compose down && docker compose up -d` to rotate logs; check for other consumers with `du -sh /var/lib/docker/*` |

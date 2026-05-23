@@ -2,7 +2,7 @@
 
 Alternative to `lxc-setup.md` — uses the Proxmox web interface and shell console instead of `pct` CLI commands. End state is identical; choose whichever flow you prefer.
 
-**Prerequisite:** Complete `kingston-ssd-setup.md` steps 1–4 first (format, mount, fstab, create directories) so `/mnt/kingston` is ready before creating the LXC.
+**Prerequisite:** Complete `kingston-ssd-setup.md` first (thin pool removal, SATA SSD mount, directory creation) so `/mnt/kingston` is ready before creating the LXC.
 
 ## Before you start
 

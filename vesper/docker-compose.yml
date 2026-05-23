@@ -1,3 +1,9 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-files: "3"
+
 services:
   gluetun:
     image: qmcgaw/gluetun:latest
@@ -26,6 +32,7 @@ services:
       - DNS_ADDRESS=1.1.1.1
       - HEALTH_VPN_DURATION_INITIAL=30s
     restart: unless-stopped
+    logging: *default-logging
     networks: [mediastack]
 
   qbittorrent:
@@ -44,6 +51,7 @@ services:
       - ${CONFIG_PATH}/qbittorrent:/config
       - ${DOWNLOADS_PATH}:/downloads
     restart: unless-stopped
+    logging: *default-logging
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -56,6 +64,7 @@ services:
       - LOG_LEVEL=info
       - TZ=${TZ}
     restart: unless-stopped
+    logging: *default-logging
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -69,6 +78,7 @@ services:
     ports:
       - 9696:9696
     restart: unless-stopped
+    logging: *default-logging
     networks: [mediastack]
 
   sonarr:
@@ -85,6 +95,7 @@ services:
     ports:
       - 8989:8989
     restart: unless-stopped
+    logging: *default-logging
     networks: [mediastack]
 
   radarr:
@@ -101,6 +112,7 @@ services:
     ports:
       - 7878:7878
     restart: unless-stopped
+    logging: *default-logging
     networks: [mediastack]
 
   bazarr:
@@ -116,6 +128,7 @@ services:
     ports:
       - 6767:6767
     restart: unless-stopped
+    logging: *default-logging
     networks: [mediastack]
 
   jellyfin:
@@ -139,6 +152,7 @@ services:
       - 7359:7359/udp
       - 1900:1900/udp
     restart: unless-stopped
+    logging: *default-logging
     networks: [mediastack]
 
 networks:

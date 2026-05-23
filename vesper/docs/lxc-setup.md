@@ -2,7 +2,7 @@
 
 Run on the Proxmox host (aegis). Covers host prep, LXC creation, iGPU passthrough, and inside-LXC baseline. Follow `mediastack-setup.md` after this.
 
-**Prerequisite:** Complete `kingston-ssd-setup.md` steps 1–4 first (format, mount, fstab, create directories) so `/mnt/kingston` is ready before creating the LXC.
+**Prerequisite:** Complete `kingston-ssd-setup.md` first (thin pool removal, SATA SSD mount, directory creation) so `/mnt/kingston` is ready before creating the LXC.
 
 ## Before you start
 
