@@ -10,6 +10,7 @@ homelab-projects/
 ├── .env.example                 # committed template, sectioned by project
 ├── CLAUDE.md
 ├── README.md
+├── scripts/                     # repo-level maintenance scripts
 └── vesper/
     ├── docker-compose.yml
     └── docs/

@@ -23,6 +23,7 @@ homelab-projects/
 ├── .gitignore
 ├── CLAUDE.md
 ├── README.md
+├── scripts/                # repo-level maintenance scripts
 └── vesper/
     ├── docker-compose.yml
     └── docs/

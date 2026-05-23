@@ -1,6 +1,6 @@
 # Mediastack Setup (Steps 5–11)
 
-Run inside LXC 100 (`pct enter 100` from aegis, or SSH to 192.168.0.50). Assumes `lxc-setup.md` is complete.
+Run inside LXC 100 (`pct enter 100` from aegis, or SSH to 192.168.0.50). Assumes steps 1–4 are complete — follow either `lxc-setup.md` (CLI) or `lxc-setup-ui.md` (Proxmox web UI) first.
 
 ## 5. Install Docker CE
 
