@@ -10,11 +10,12 @@ homelab-projects/
 ├── .env.example                 # committed template, sectioned by project
 ├── CLAUDE.md
 ├── README.md
-└── proxmox-mediastack/
+└── vesper/
     ├── docker-compose.yml
     └── docs/
-        ├── lxc-setup.md         # steps 1-4 reference (done)
-        └── mediastack-setup.md  # steps 5-10 deployment runbook
+        ├── lxc-setup.md         # steps 1-4 CLI reference (done)
+        ├── lxc-setup-ui.md      # steps 1-4 via Proxmox web UI
+        └── mediastack-setup.md  # steps 5-11 deployment runbook
 ```
 
 ## Hardware Reference
@@ -33,7 +34,7 @@ homelab-projects/
 SSH or `pct enter 100` from aegis, then:
 
 ```bash
-cd /root/mediastack   # symlink → /root/homelab-projects/proxmox-mediastack
+cd /root/mediastack   # symlink → /root/homelab-projects/vesper
 docker compose up -d
 docker compose ps
 docker compose logs -f <service>

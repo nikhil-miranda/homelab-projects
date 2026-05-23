@@ -35,7 +35,7 @@ docker run --rm hello-world
 ```bash
 cd /root
 git clone https://github.com/nikhil-miranda/homelab-projects.git
-ln -s /root/homelab-projects/proxmox-mediastack /root/mediastack
+ln -s /root/homelab-projects/vesper /root/mediastack
 ln -s /root/homelab-projects/.env /root/mediastack/.env
 cd /root/mediastack
 ```
