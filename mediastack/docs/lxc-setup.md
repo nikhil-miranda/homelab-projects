@@ -108,6 +108,7 @@ apt update && apt upgrade -y
 
 # Render group must match host GID 993
 groupadd -g 993 render || groupmod -g 993 render
+# If this fails with "GID '993' already exists", see the GID conflict note below
 
 # Locale fix
 apt install -y locales
@@ -120,6 +121,28 @@ apt install -y intel-media-va-driver vainfo
 vainfo
 # Expect: iHD driver 25.2.3, profiles for H.264, HEVC, VP9, AV1
 ```
+
+### GID conflict: "GID '993' already exists"
+
+Debian 13 assigns system group GIDs dynamically during package installation. The LXC template may place a different group (commonly `kvm`) at 993, leaving `render` at 992. Since this is a privileged container (1:1 GID mapping), `renderD128` will show the wrong group name inside the LXC until the conflict is resolved.
+
+Find the conflict and cascade the blocking groups into a free slot:
+
+```bash
+# Identify which groups sit at the conflicting GIDs
+grep ':993:' /etc/group   # e.g. kvm:x:993:
+grep ':994:' /etc/group   # e.g. clock:x:994:
+
+# Find a free GID in the gap below 989 (or scan manually):
+for gid in $(seq 985 999); do grep -q ":${gid}:" /etc/group || echo "free: $gid"; done
+
+# Cascade example (substitute actual group names and free GID from your output):
+groupmod -g <free_gid> clock   # move group at 994 to the free slot
+groupmod -g 994 kvm            # move group at 993 to 994
+groupmod -g 993 render         # render can now take 993
+```
+
+After the cascade `ls -la /dev/dri` should show `root:render` for `renderD128` without restarting the container.
 
 ## Verification
 

@@ -11,7 +11,7 @@ homelab-projects/
 ├── CLAUDE.md
 ├── README.md
 ├── scripts/                     # repo-level maintenance scripts
-└── vesper/
+└── mediastack/
     ├── docker-compose.yml
     └── docs/
         ├── lxc-setup.md         # steps 1-4 CLI reference (done)
@@ -36,7 +36,7 @@ homelab-projects/
 SSH or `pct enter 100` from aegis, then:
 
 ```bash
-cd /root/mediastack   # symlink → /root/homelab-projects/vesper
+cd /root/mediastack   # symlink → /root/homelab-projects/mediastack
 docker compose up -d
 docker compose ps
 docker compose logs -f <service>
