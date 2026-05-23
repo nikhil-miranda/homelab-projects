@@ -64,7 +64,7 @@ pct create 100 local:vztmpl/debian-13-standard_13.0-1_amd64.tar.zst \
   --hostname mediastack \
   --cores 8 \
   --memory 8192 \
-  --rootfs local-lvm:16 \
+  --rootfs local:16 \
   --net0 name=eth0,bridge=vmbr0,ip=192.168.0.50/24,gw=192.168.0.1 \
   --features nesting=1,keyctl=1 \
   --unprivileged 0 \

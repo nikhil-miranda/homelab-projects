@@ -45,7 +45,7 @@ Open `https://aegis:8006` → **Create CT** (top-right button).
 | General | Password | (set a root password) |
 | Template | Storage | local |
 | Template | Template | debian-13-standard_13.x-x_amd64.tar.zst |
-| Disks | Storage | local-lvm |
+| Disks | Storage | local |
 | Disks | Disk size | 16 GiB |
 | CPU | Cores | 8 |
 | Memory | Memory | 8192 MiB |
