@@ -62,6 +62,24 @@ getent group render
 # render:x:993:
 ```
 
+### LVM layout
+
+The default Proxmox install allocates 8 GB to swap and only ~644 MB to `pve/srv` (mounted at `/srv`). Service configs live under `/srv/config`; Jellyfin requires at least 2 GB free there to start. With 32 GB RAM, 2 GB swap is sufficient — reclaim the rest for `pve/srv`:
+
+```bash
+swapoff /dev/mapper/pve-swap
+wipefs -a /dev/mapper/pve-swap   # wipe signature so LVM doesn't block the resize
+lvreduce -L 2G /dev/pve/swap
+mkswap /dev/mapper/pve-swap
+swapon /dev/mapper/pve-swap
+
+lvextend -L +6G /dev/pve/srv
+resize2fs /dev/mapper/pve-srv
+
+df -h /srv
+# /dev/mapper/pve-srv  6.6G   22M  6.3G   1% /srv
+```
+
 ## 2. Create LXC 100 (mediastack)
 
 ```bash
@@ -76,7 +94,7 @@ pct create 100 local:vztmpl/debian-13-standard_13.0-1_amd64.tar.zst \
   --onboot 1
 ```
 
-## 3. iGPU passthrough and bind mounts
+## 3. iGPU passthrough, TUN device, and bind mounts
 
 Edit `/etc/pve/lxc/100.conf` on the host. Append:
 
@@ -85,6 +103,10 @@ Edit `/etc/pve/lxc/100.conf` on the host. Append:
 lxc.cgroup2.devices.allow: c 226:0 rwm
 lxc.cgroup2.devices.allow: c 226:128 rwm
 lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
+
+# TUN device — required for gluetun VPN container
+lxc.cgroup2.devices.allow: c 10:200 rwm
+lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
 
 # Bind mounts — media & downloads from Kingston SSD, config from NVMe
 mp0: /mnt/kingston/media,mp=/mnt/media
@@ -120,6 +142,10 @@ update-locale LANG=en_US.UTF-8
 apt install -y intel-media-va-driver vainfo
 vainfo
 # Expect: iHD driver 25.2.3, profiles for H.264, HEVC, VP9, AV1
+
+# Cap OS logs to avoid filling the root disk
+echo "SystemMaxUse=200M" >> /etc/systemd/journald.conf
+systemctl restart systemd-journald
 ```
 
 ### GID conflict: "GID '993' already exists"
@@ -152,6 +178,9 @@ ls -la /dev/dri
 
 cat /etc/group | grep render
 # render:x:993:
+
+ls -la /dev/net/tun
+# crw-rw-rw- 1 root root 10, 200 ... /dev/net/tun
 
 mount | grep mnt
 # /mnt/kingston/media on /mnt/media type none (rw,bind)

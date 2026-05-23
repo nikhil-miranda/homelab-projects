@@ -88,6 +88,10 @@ lxc.cgroup2.devices.allow: c 226:0 rwm
 lxc.cgroup2.devices.allow: c 226:128 rwm
 lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
 
+# TUN device — required for gluetun VPN container
+lxc.cgroup2.devices.allow: c 10:200 rwm
+lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
+
 # Bind mounts — media & downloads from Kingston SSD, config from NVMe
 mp0: /mnt/kingston/media,mp=/mnt/media
 mp1: /mnt/kingston/downloads,mp=/mnt/downloads

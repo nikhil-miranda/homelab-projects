@@ -18,6 +18,23 @@ apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker
 systemctl enable --now docker
 ```
 
+Configure log rotation before starting any containers:
+
+```bash
+cat > /etc/docker/daemon.json << 'EOF'
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOF
+systemctl restart docker
+```
+
+This caps each container at 30 MB of logs (3 × 10 MB), ~240 MB total across the stack.
+
 Verify:
 
 ```bash
@@ -140,10 +157,11 @@ API keys: Settings → General → Security in each `*arr` app.
 | Setting | Value | Reason |
 |---|---|---|
 | WebUI → Authentication → Bypass for LAN | Enable, `192.168.0.0/24` | Saves repeated login |
-| Downloads → Default Save Path | `/downloads/incomplete` | |
-| Downloads → Keep incomplete in | `/downloads/incomplete` | |
-| Downloads → Completed move to | `/downloads/complete` | |
+| Downloads → Default Save Path | `/downloads/complete` | Final destination for finished torrents |
+| Downloads → Keep incomplete torrents in (checkbox) | Enable, `/downloads/incomplete` | Temp location while downloading |
 | Connection → Listening port | `6881` | Matches gluetun port forward |
+
+> **Note:** Newer qBittorrent versions (5.x) removed the separate "Completed move to" option. Set **Default Save Path** to `/downloads/complete` and enable the **"Keep incomplete torrents in"** checkbox with `/downloads/incomplete` to get the same behaviour.
 
 ## 10. Jellyfin hardware acceleration
 
@@ -187,6 +205,55 @@ df -h /              # pve-root: Proxmox OS + Docker logs (capped at ~240MB tota
 df -h /mnt/kingston  # SATA SSD: all media and downloads
 ```
 
+## 12. Tailscale remote access
+
+Jellyfin is exposed on the tailnet via a Tailscale sidecar container that shares Jellyfin's network namespace (same pattern as gluetun → qBittorrent).
+
+### Generate an auth key
+
+1. Go to https://login.tailscale.com/admin/settings/keys
+2. Click **Generate auth key**
+3. Set **Reusable** ✓ and **Expiry** to your preference (or never)
+4. Copy the key (`tskey-auth-…`)
+
+### Add to `.env`
+
+```bash
+nano /root/homelab-projects/mediastack/.env
+```
+
+Fill in:
+
+```
+TAILSCALE_AUTHKEY=tskey-auth-...
+TS_HOSTNAME=jellyfin        # appears as this name in Tailscale admin
+```
+
+### Create the config directory and bring up
+
+```bash
+mkdir -p /mnt/config/tailscale-jellyfin
+docker compose up -d tailscale-jellyfin
+docker compose up -d jellyfin
+```
+
+### Verify
+
+```bash
+# Confirm tailscale-jellyfin joined the tailnet
+docker exec tailscale-jellyfin tailscale status
+
+# Should show the node name and tailnet IP (100.x.x.x)
+```
+
+### Access URLs
+
+| Network | URL |
+|---|---|
+| LAN | http://192.168.0.50:8096 (unchanged) |
+| Tailnet (MagicDNS off) | http://100.x.x.x:8096 |
+| Tailnet (MagicDNS on) | http://jellyfin:8096 or http://jellyfin.\<tailnet\>.ts.net:8096 |
+
 ## Known pitfalls
 
 | Symptom | Cause | Fix |
@@ -201,4 +268,6 @@ df -h /mnt/kingston  # SATA SSD: all media and downloads
 | LAN devices cannot reach qBittorrent WebUI | gluetun firewall | Confirm `LAN_SUBNET=192.168.0.0/24` in `.env` |
 | Any service: `AppFolder /config is not writable` | Config dir owned by wrong user | On aegis: `chown -R ${PUID}:${PGID} /srv/config/<service>`, then `docker compose restart <service>` |
 | Any service: `No space left on device` on SATA SSD | SATA SSD full — media or downloads filling `/mnt/kingston` | On aegis: `df -h /mnt/kingston`. Remove unwanted media or stale completed downloads. |
+| Jellyfin: `The path /config/data/data has insufficient free space. Required: 2GiB` | `pve/srv` LV is too small (default ~644 MB); Jellyfin refuses to start with less than 2 GB free | On aegis: shrink swap and extend `pve/srv` — see LVM layout section in `lxc-setup.md` |
 | Any service: `No space left on device` on pve-root (NVMe) | Rare — Docker logs are capped at 10 MB × 3 files per service (~240 MB total). If it happens, check with `du -sh /var/lib/docker/containers/` inside LXC | Run `docker compose down && docker compose up -d` to rotate logs; check for other consumers with `du -sh /var/lib/docker/*` |
+| `failed to mount … no space left on device` on `docker compose up` | rootfs (LXC disk) is full — images alone are ~15 GB on a 16 GB root | On aegis: `pct resize 100 rootfs +8G`. Inside LXC: `resize2fs /dev/loop0`. Then repull with `docker compose pull && docker compose up -d` |

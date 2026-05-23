@@ -131,9 +131,35 @@ services:
     logging: *default-logging
     networks: [mediastack]
 
+  tailscale-jellyfin:
+    image: tailscale/tailscale:latest
+    container_name: tailscale-jellyfin
+    hostname: ${TS_HOSTNAME:-jellyfin}
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    volumes:
+      - ${CONFIG_PATH}/tailscale-jellyfin:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8096:8096
+      - 8920:8920
+      - 7359:7359/udp
+      - 1900:1900/udp
+    restart: unless-stopped
+    logging: *default-logging
+    networks: [mediastack]
+
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
+    network_mode: "service:tailscale-jellyfin"
+    depends_on:
+      - tailscale-jellyfin
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -146,14 +172,8 @@ services:
       - /dev/dri:/dev/dri
     group_add:
       - "${RENDER_GID}"
-    ports:
-      - 8096:8096
-      - 8920:8920
-      - 7359:7359/udp
-      - 1900:1900/udp
     restart: unless-stopped
     logging: *default-logging
-    networks: [mediastack]
 
 networks:
   mediastack:
