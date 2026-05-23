@@ -1,4 +1,4 @@
-# Mediastack Setup (Steps 5–10)
+# Mediastack Setup (Steps 5–11)
 
 Run inside LXC 100 (`pct enter 100` from aegis, or SSH to 192.168.0.50). Assumes `lxc-setup.md` is complete.
 
@@ -186,7 +186,7 @@ docker compose up -d
 # Logs for one service
 docker compose logs -f sonarr
 
-# Check disk usage on aegis (pve-root must not fill up — /tank/ lives there)
+# Check disk usage on aegis (pve-root must not fill up — /srv/ lives there)
 df -h /   # run on aegis host, not in LXC
 ```
 
@@ -202,5 +202,5 @@ df -h /   # run on aegis host, not in LXC
 | Jellyfin transcode falls back to software | GID mismatch | `docker exec jellyfin id`, confirm 993 present |
 | Sonarr cannot import from qBittorrent | Path mismatch | Both use `/downloads` — no remote path mapping needed with this compose |
 | LAN devices cannot reach qBittorrent WebUI | gluetun firewall | Confirm `LAN_SUBNET=192.168.0.0/24` in `.env` |
-| Any service: `AppFolder /config is not writable` | Config dir owned by wrong user | On aegis: `chown -R ${PUID}:${PGID} /tank/config/<service>`, then `docker compose restart <service>` |
-| Any service: `No space left on device` or `insufficient free space` | pve-root full — `/tank/` is on pve-root (no dedicated storage disk) | On aegis: `df -h /`. If 100%, check for stale data hidden under bind mounts: `mkdir /mnt/pveroot-check && mount --bind / /mnt/pveroot-check && du -sh /mnt/pveroot-check/tank/*`. Delete stale contents, then `umount /mnt/pveroot-check`. |
+| Any service: `AppFolder /config is not writable` | Config dir owned by wrong user | On aegis: `chown -R ${PUID}:${PGID} /srv/config/<service>`, then `docker compose restart <service>` |
+| Any service: `No space left on device` or `insufficient free space` | pve-root full — `/srv/` is on pve-root (no dedicated storage disk) | On aegis: `df -h /`. Clear stale downloads or old logs to free space. |

@@ -11,8 +11,8 @@ Personal homelab automation, configs, and runbooks.
 ## Conventions
 
 - Secrets live in `.env` (gitignored). See `.env.example` for the template.
-- ZFS bind mounts under `/mnt/` inside LXCs.
-- Service config persisted on host ZFS, not inside containers.
+- Bind mounts from `/tank/{media,downloads,config}` on pve-root into `/mnt/` inside LXCs.
+- Service config persisted on `/tank/config` on the host, not inside containers.
 
 ## Layout
 
