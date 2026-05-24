@@ -60,9 +60,9 @@ cd /root/homelab-projects/mediastack
 Create config and data directories on the bind mounts:
 
 ```bash
-mkdir -p /mnt/config/{gluetun,qbittorrent,prowlarr,sonarr,radarr,bazarr,jellyfin,flaresolverr}
-mkdir -p /mnt/media/{tv,movies}
-mkdir -p /mnt/downloads/{incomplete,complete}
+mkdir -p /mnt/config/{gluetun,qbittorrent,prowlarr,sonarr,radarr,bazarr,jellyfin,flaresolverr,tailscale-jellyfin}
+mkdir -p /mnt/kingston/media/{tv,movies}
+mkdir -p /mnt/kingston/downloads/{incomplete,complete}
 ```
 
 ## 7. Create local `.env`

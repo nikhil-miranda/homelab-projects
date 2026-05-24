@@ -18,7 +18,7 @@ services:
       - 6881:6881/udp
       - 8191:8191
     volumes:
-      - ${CONFIG_PATH}/gluetun:/gluetun
+      - /mnt/config/gluetun:/gluetun
     environment:
       - TZ=${TZ}
       - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
@@ -48,7 +48,7 @@ services:
       - TZ=${TZ}
       - WEBUI_PORT=8080
     volumes:
-      - ${CONFIG_PATH}/qbittorrent:/config
+      - /mnt/config/qbittorrent:/config
       - ${DATA_PATH}/downloads:/downloads
     restart: unless-stopped
     logging: *default-logging
@@ -74,7 +74,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ${CONFIG_PATH}/prowlarr:/config
+      - /mnt/config/prowlarr:/config
     ports:
       - 9696:9696
     restart: unless-stopped
@@ -89,7 +89,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ${CONFIG_PATH}/sonarr:/config
+      - /mnt/config/sonarr:/config
       - ${DATA_PATH}:/data
     ports:
       - 8989:8989
@@ -105,7 +105,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ${CONFIG_PATH}/radarr:/config
+      - /mnt/config/radarr:/config
       - ${DATA_PATH}:/data
     ports:
       - 7878:7878
@@ -121,7 +121,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ${CONFIG_PATH}/bazarr:/config
+      - /mnt/config/bazarr:/config
       - ${DATA_PATH}/media:/media
     ports:
       - 6767:6767
@@ -138,7 +138,7 @@ services:
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=false
     volumes:
-      - ${CONFIG_PATH}/tailscale-jellyfin:/var/lib/tailscale
+      - /mnt/config/tailscale-jellyfin:/var/lib/tailscale
     devices:
       - /dev/net/tun:/dev/net/tun
     cap_add:
@@ -164,7 +164,7 @@ services:
       - TZ=${TZ}
       - JELLYFIN_PublishedServerUrl=192.168.0.50
     volumes:
-      - ${CONFIG_PATH}/jellyfin:/config
+      - /mnt/config/jellyfin:/config
       - ${DATA_PATH}/media:/media
     devices:
       - /dev/dri:/dev/dri

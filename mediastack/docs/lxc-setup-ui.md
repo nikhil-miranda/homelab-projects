@@ -96,6 +96,7 @@ lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
 mp0: /mnt/kingston/media,mp=/mnt/media
 mp1: /mnt/kingston/downloads,mp=/mnt/downloads
 mp2: /srv/config,mp=/mnt/config
+mp3: /mnt/kingston,mp=/mnt/kingston
 ```
 
 Start the container: select CT 100 in the sidebar → **Start** button (or `pct start 100` on aegis).
@@ -158,6 +159,7 @@ mount | grep mnt
 # /mnt/kingston/media on /mnt/media type none (rw,bind)
 # /mnt/kingston/downloads on /mnt/downloads type none (rw,bind)
 # /srv/config on /mnt/config type none (rw,bind)
+# /mnt/kingston on /mnt/kingston type none (rw,bind)
 ```
 
 All four steps complete — continue with `mediastack-setup.md`.
