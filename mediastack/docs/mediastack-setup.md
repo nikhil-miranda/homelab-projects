@@ -256,6 +256,31 @@ docker exec tailscale-jellyfin tailscale status
 | Tailnet (MagicDNS off) | http://100.x.x.x:8096 |
 | Tailnet (MagicDNS on) | http://jellyfin:8096 or http://jellyfin.\<tailnet\>.ts.net:8096 |
 
+## Reset / Start fresh
+
+To tear down the entire stack and return LXC 100 to a clean state, run the reset script from inside the LXC:
+
+```bash
+# Interactive (prompts for each destructive step)
+bash /root/homelab-projects/scripts/reset-mediastack.sh
+
+# Non-interactive (skips all prompts — use carefully)
+bash /root/homelab-projects/scripts/reset-mediastack.sh -y
+```
+
+**What gets wiped:**
+
+| Resource | Action |
+|---|---|
+| Docker containers, images, volumes, networks, build cache | Fully removed (`docker system prune -af --volumes`) |
+| Service config dirs under `/mnt/config` | Removed and recreated empty |
+| `.env` (secrets) | Removed |
+| `/mnt/kingston/downloads` | Optional — prompted separately |
+| `/mnt/kingston/media` | **Never touched** |
+| Repo at `/root/homelab-projects` | **Never touched** |
+
+After the reset, follow steps 6–11 above to bring the stack back up.
+
 ## Known pitfalls
 
 | Symptom | Cause | Fix |
