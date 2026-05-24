@@ -154,6 +154,8 @@ API keys: Settings → General → Security in each `*arr` app.
 | qBittorrent default save | `/downloads/complete` |
 | qBittorrent incomplete keep | `/downloads/incomplete` |
 
+> **Critical:** Radarr's only movie root folder must be `/data/media/movies`, and Sonarr's only root must be `/data/media/tv`. **Never add `/data/downloads` (or `/data/downloads/complete`) as a root folder.** If a downloads path is registered as a root folder, movies get stored back inside the downloads tree instead of `/data/media/movies` — and Jellyfin, which only scans `/media/movies`, never sees them. Verify under Settings → Media Management → Root Folders that no downloads path is listed.
+
 ### qBittorrent extra settings
 
 | Setting | Value | Reason |
@@ -165,7 +167,66 @@ API keys: Settings → General → Security in each `*arr` app.
 
 > **Note:** Newer qBittorrent versions (5.x) removed the separate "Completed move to" option. Set **Default Save Path** to `/downloads/complete` and enable the **"Keep incomplete torrents in"** checkbox with `/downloads/incomplete` to get the same behaviour.
 
-## 10. Jellyfin hardware acceleration
+### Radarr: remote path mapping (required for auto-import)
+
+qBittorrent reports completed downloads using its internal path (`/downloads/complete/...`), but Radarr's container sees the same directory at `/data/downloads/complete/...`. Without this mapping, auto-import silently fails every time.
+
+Radarr → Settings → Download Clients → Remote Path Mappings → **+**
+
+| Field | Value |
+|---|---|
+| Host | `gluetun` |
+| Remote Path | `/downloads` |
+| Local Path | `/data/downloads` |
+
+Repeat in Sonarr → Settings → Download Clients → Remote Path Mappings with the same values.
+
+### Radarr: quality profile
+
+Radarr ships with a default **Any** profile that accepts all quality tiers. If you want finer control:
+
+Settings → Quality → edit the profile → check which tiers to allow (e.g. `Bluray-1080p`, `WEB-1080p`, `Bluray-2160p`, `WEB-2160p`). The **Cutoff** sets the minimum quality Radarr will keep; tiers below it get auto-upgraded when a better copy is found.
+
+Custom format scoring (Dolby Vision, HDR10+, x265, Atmos) lives under Settings → Custom Formats. The defaults score everything at 0 — edit only if you want Radarr to prefer or reject specific encodings.
+
+### Radarr/Sonarr: import lists
+
+Import lists (TMDb Popular, StevenLu, Trakt, etc.) auto-populate the library with many titles — often hundreds of unreleased "popular" movies that clutter the library. For a personal setup they are usually best left **disabled** (Settings → Import Lists). If you do enable one, its **Root Folder must be `/data/media/movies`** (Sonarr: `/data/media/tv`) — every movie a list adds inherits that list's root-folder setting. A list pointed at `/data/downloads/complete` silently routes every added movie into the downloads tree, where Jellyfin never sees it.
+
+### Adding movies and importing
+
+**Normal workflow — Radarr manages the full pipeline:**
+
+1. Movies → Add New → search for the title → choose a quality profile → **Add Movie**
+2. On the movie's detail page click **Search Now** — Radarr finds a torrent via Prowlarr, sends it to qBittorrent, monitors the download, then auto-imports and renames the file when complete.
+
+**Manual import — file already sits in `/downloads/complete`:**
+
+1. Movies → Add New → add the movie to the library (leave "Start search" unchecked)
+2. Open that movie's detail page → click the folder icon (Manual Import)
+3. Navigate to `/data/downloads/complete/[movie folder]` → confirm the match → Import
+
+**Library Import vs Manual Import:**
+
+| Screen | What it does |
+|---|---|
+| Movies → Library Import | Scans `/data/media/movies` for files not yet linked to a library entry. An **Existing** badge means the file is already associated — no action needed; the checkbox will be disabled. |
+| Movie detail → folder icon | Manual Import — lets you point Radarr at any file on disk and link it to that specific library entry. Use this for files stuck in downloads. |
+
+### Radarr/Sonarr → Jellyfin: instant library updates
+
+By default Jellyfin only notices new files on its scheduled scan, so a freshly imported movie can take a while to appear (and may look like it "sometimes shows, sometimes doesn't"). To make it instant, have Radarr/Sonarr refresh Jellyfin on import.
+
+Radarr → Settings → Connect → **+** → **Emby / Jellyfin** (this connection type works for Jellyfin):
+
+| Field | Value |
+|---|---|
+| URL / Host | `http://tailscale-jellyfin:8096` (Jellyfin shares that container's network namespace) |
+| API Key | Jellyfin → Dashboard → API Keys → **+** to create one |
+| Triggers | On Import, On Upgrade, On Rename |
+| Update Library | Enabled |
+
+Repeat in Sonarr → Settings → Connect with the same Jellyfin host and API key. Use **Test** to confirm reachability before saving.
 
 Dashboard → Playback → Transcoding:
 
@@ -291,7 +352,8 @@ After the reset, follow steps 6–11 above to bring the stack back up.
 | FlareSolverr stuck in `created` | gluetun unhealthy, `depends_on` blocking | Fix gluetun first (FlareSolverr shares gluetun network) |
 | Storage driver `vfs` not `overlay2` | LXC features missing | Add `features: nesting=1,keyctl=1` to LXC conf, restart |
 | Jellyfin transcode falls back to software | GID mismatch | `docker exec jellyfin id`, confirm 993 present |
-| Sonarr/Radarr cannot import from qBittorrent | Path mismatch | Both use `/downloads` — no remote path mapping needed with this compose |
+| Radarr/Sonarr auto-import silently fails after download completes | Path mismatch — qBittorrent reports paths as `/downloads/...` but Radarr/Sonarr see the same folder at `/data/downloads/...` | Add a Remote Path Mapping in Radarr and Sonarr: Settings → Download Clients → Remote Path Mappings → Host: `gluetun`, Remote Path: `/downloads`, Local Path: `/data/downloads` |
+| Movie/episode downloads and imports but never appears in Jellyfin | The item's folder path is under `/data/downloads`, not `/data/media/...` — caused by a downloads path registered as a Radarr/Sonarr root folder and/or an import list whose Root Folder points at downloads | Remove the downloads root folder (Settings → Media Management → Root Folders), set every import list's Root Folder to `/data/media/movies` (or `/data/media/tv`), then re-root affected items (Movie/Series Editor → Root Folder → Move Files) so files land under `/data/media/...`. Confirm in Settings → Media Management that only the media roots remain. |
 | Radarr/Sonarr copies downloads instead of hardlinking — `du` shows double the movie size | Separate Docker volume mounts (`/media` and `/downloads`) appear as different filesystems; `link()` fails with EXDEV so the app falls back to copy | `DATA_PATH=/mnt/kingston` and the single `/data` mount in compose puts both paths on the same filesystem inside the container. Verify: `ls -i /mnt/kingston/downloads/complete/<file> /mnt/kingston/media/movies/<movie>/<file>` — inode numbers must match |
 | LAN devices cannot reach qBittorrent WebUI | gluetun firewall | Confirm `LAN_SUBNET=192.168.0.0/24` in `.env` |
 | Any service: `AppFolder /config is not writable` | Config dir owned by wrong user | On aegis: `chown -R ${PUID}:${PGID} /srv/config/<service>`, then `docker compose restart <service>` |
